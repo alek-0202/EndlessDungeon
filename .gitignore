@@ -1,8 +1,9 @@
 # Godot generated files
 .godot/
 
-# Export credentials
+# Godot export and platform files
 export_credentials.cfg
+/android/
 
 # Operating system
 .DS_Store
