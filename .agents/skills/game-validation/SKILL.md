@@ -15,10 +15,11 @@ Read `AGENTS.md`, `docs/AI_WORKFLOW.md`, the task acceptance criteria, and relev
 
 ## Procedure
 
-1. Choose checks for changed files: documentation and diff checks, Godot import, available automated tests, and runtime inspection when applicable.
-2. Resolve Godot in order from process `GODOT_PATH`, Windows User `GODOT_PATH` when applicable, then an executable on `PATH`. Validate a resolved path with `Test-Path` where applicable and run `--version`. Set `GODOT_PATH` only for the current process if needed; never commit a machine path.
-3. Run headless import against the actual project root when applicable. Run available automated tests relevant to the change. When Godot MCP is useful, discover only tools relevant to the required editor or runtime inspection and verify their results.
-4. Inspect actual exit codes, MCP results, logs, and tracked and untracked changes caused by validation. Distinguish import, automated test, and gameplay validation in the report.
+1. Use `tools/validation/Validate-Project.ps1` as the preferred baseline. Select `Quick` for local feedback when import evidence is unnecessary; select `Full` for Godot code, scenes, resources, project configuration, or delivery evidence that requires headless import.
+2. Inspect every failed, skipped, and warning result and the native exit codes that are available. Never describe a skipped check as passed.
+3. Use `tools/setup/Resolve-Godot.ps1`, `tools/validation/Validate-Environment.ps1`, or `tools/validation/Validate-Skills.ps1` individually only when troubleshooting their specific responsibility. Do not reconstruct their resolution or validation logic manually.
+4. Run available automated or feature-specific tests relevant to the change. When Godot MCP is useful, discover only tools relevant to the required editor or runtime inspection and verify their results.
+5. Inspect actual exit codes, MCP results, logs, and tracked and untracked changes caused by validation. Distinguish project import, runtime inspection, automated tests, and gameplay validation in the report.
 
 ## Approval and failure boundaries
 

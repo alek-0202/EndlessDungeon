@@ -1,6 +1,6 @@
 # Fluxo de trabalho com IA
 
-Este documento descreve o fluxo operacional pretendido para o desenvolvimento de Endless Dungeon. O fluxo é uma regra de trabalho. As seis Skills centrais estão implementadas; scripts, hooks, pipeline de assets, testes automatizados e CI só passam a operar quando forem criados e validados.
+Este documento descreve o fluxo operacional pretendido para o desenvolvimento de Endless Dungeon. O fluxo é uma regra de trabalho. As seis Skills centrais e os primeiros scripts de diagnóstico e validação estão implementados; hooks, pipeline de assets, testes automatizados e CI só passam a operar quando forem criados e validados.
 
 ## Papéis e responsabilidades
 
@@ -48,7 +48,53 @@ Skills locais ao repositório ficam em `.agents/skills/`, cada uma com responsab
 
 A descoberta nativa das seis Skills e sua seleção implícita conjunta em uma solicitação com múltiplas tarefas foram verificadas. Isso demonstra composição orientada pela solicitação nesse cenário; não garante orquestração automática para todos os fluxos. Testes independentes de seleção para tarefas únicas ainda estão pendentes.
 
-Scripts determinísticos, hooks, pipeline de assets, testes automatizados e CI ainda não foram implementados. Sua criação, ativação e validação pertencem a etapas futuras.
+Os scripts determinísticos de bootstrap, resolução do Godot, diagnóstico do ambiente, validação de Skills e validação unificada do projeto estão implementados. Hooks, pipeline de assets, testes automatizados e CI ainda não foram implementados; sua criação, ativação e validação pertencem a etapas futuras.
+
+## Automação local do ambiente
+
+- `tools/setup/bootstrap.ps1` é a entrada diagnóstica para uma máquina nova ou para investigar prontidão do ambiente. Usa `Quick` por padrão, aceita `-Mode Full`, `-Json` e `-GodotTimeoutSeconds`, delega a validação a `Validate-Project.ps1` e fornece orientações manuais sem instalar ferramentas nem alterar configurações persistentes.
+- `tools/setup/Resolve-Godot.ps1` resolve e valida um executável Godot 4 por `GODOT_PATH` do processo, `GODOT_PATH` do ambiente User no Windows e `PATH`, nessa ordem. A execução standalone aceita `-Json`; o uso reutilizável é feito por dot sourcing e pela função `Resolve-Godot`.
+- `tools/validation/Validate-Environment.ps1` localiza a raiz do repositório a partir do próprio script e verifica PowerShell, Git, Godot e os arquivos essenciais. Node.js, npm, npx, Python e Codex CLI standalone são opcionais. A execução aceita `-Json` para produzir um único documento JSON.
+- `tools/validation/Validate-Skills.ps1` descobre Skills em `.agents/skills/` e valida os seis Skills fundamentais, manifests, referências locais, regras de ignore e padrões conservadores de segurança. Aceita `-Json`; warnings não causam falha. O subconjunto suportado de frontmatter usa delimitadores `---` e metadados `key: value` de linha única. O script é específico deste repositório e não equivale ao validador oficial de Skills da OpenAI.
+- `tools/validation/Validate-Project.ps1` compõe os três componentes anteriores, estrutura e referências do projeto, whitespace do Git e detecção de efeitos colaterais por fingerprints. O modo `Full` também executa importação headless do Godot com timeout; o modo `Quick` registra essa etapa como ignorada. Ambos aceitam `-Json` e preservam findings, durações e códigos nativos disponíveis.
+
+O JSON de `Validate-Project.ps1` usa `SchemaVersion` 1 e contém `Success`, `Mode`, `RepositoryRoot`, `DurationMs`, `Counts`, `Checks`, `Findings`, `SideEffects` e `Limitations`. Cada check informa identificador, descrição, obrigatoriedade, status (`Passed`, `Failed` ou `Skipped`), duração, código nativo quando existe, findings e dados específicos. Código 0 significa que todos os checks obrigatórios foram executados e passaram; código 1 significa falha ou check obrigatório não executado por dependência indisponível. Warnings não causam falha.
+
+Usar `Quick` para feedback local quando não é necessária evidência de importação; usar `Full`, que é o padrão, antes de uma entrega ou quando mudanças podem afetar o carregamento do projeto no Godot. O timeout da importação pode ser ajustado por `-GodotTimeoutSeconds`; quando ele expira, somente o processo iniciado pelo validador é encerrado e o check falha. Exemplos:
+
+```powershell
+# Full, saída legível para pessoas
+powershell -NoProfile -File .\tools\validation\Validate-Project.ps1
+
+# Quick, documento JSON único
+powershell -NoProfile -File .\tools\validation\Validate-Project.ps1 -Mode Quick -Json
+
+# Uso reutilizável sem encerrar a sessão chamadora
+. .\tools\validation\Validate-Project.ps1
+Test-EndlessDungeonProject -Mode Quick
+```
+
+Em uma máquina nova: obter um checkout completo; abrir PowerShell sem elevação; executar `powershell -NoProfile -File .\tools\setup\bootstrap.ps1`; seguir apenas as orientações aplicáveis; configurar `GODOT_PATH` manualmente quando o Godot não estiver no `PATH`; e repetir o bootstrap. Para um ajuste apenas no processo atual, usar `$env:GODOT_PATH = '<caminho-do-executável-Godot-4>'`. O JSON do bootstrap usa `SchemaVersion` 1 e contém status geral, modo, capacidades obrigatórias e opcionais, resultado consolidado do projeto, remediações, integrações externas, findings e limitações. Capacidade opcional ausente não causa falha.
+
+```powershell
+# Diagnóstico Quick padrão
+powershell -NoProfile -File .\tools\setup\bootstrap.ps1
+
+# Diagnóstico Full com documento JSON
+powershell -NoProfile -File .\tools\setup\bootstrap.ps1 -Mode Full -Json
+
+# Interface reutilizável
+. .\tools\setup\bootstrap.ps1
+Invoke-EndlessDungeonBootstrap -Mode Quick
+```
+
+Godot MCP, PixelLab MCP e a integração do Codex no VS Code são configurados e verificados separadamente pelos fluxos seguros do ambiente hospedeiro. O bootstrap nunca solicita, lê, armazena ou imprime credenciais e não inspeciona configurações MCP privadas. Godot CLI disponível não comprova conectividade Godot MCP; Codex CLI standalone disponível ou ausente não determina o estado da integração no VS Code. Antes de geração PixelLab aprovada, verificar a integração com uma operação gratuita e somente de leitura quando disponível.
+
+Os cinco scripts retornam código 0 quando seus requisitos obrigatórios passam e código 1 quando falham. Foram testados no Windows PowerShell 5.1.26100.9711. Operações específicas do ambiente User são condicionadas ao Windows; compatibilidade em outras plataformas ainda não foi verificada. A descoberta de executáveis não valida conectividade MCP, integração do Codex no VS Code nem comportamento de gameplay ou runtime. A detecção de efeitos colaterais de `Validate-Project.ps1` cobre arquivos rastreados e arquivos não ignorados pelo Git; caches e artefatos locais ignorados, mudanças apenas no índice, diretórios e arquivos de reparse point que não puderam ser lidos ficam fora dessa comparação.
+
+## Backlog de regressão para AI-08
+
+Preservar como cenários para automação futura: precedência, compatibilidade, falha e timeout da resolução do Godot; capacidades obrigatórias e opcionais do ambiente; manifests, referências, ignore e heurísticas de segurança das Skills; modos Quick e Full, saída humana e JSON, execução externa, whitespace tracked, staged e untracked, falhas de componentes, códigos nativos, timeout, dependências ignoradas e detecção de criação, remoção e modificação por fingerprints; bootstrap real, repetido e externo, remediações obrigatórias e opcionais, ausência de componentes, JSON de falha e preservação de ambiente e Git. Incluir sentinelas controladas para confirmar que diagnósticos não expõem valores sensíveis. Esses cenários são backlog de AI-08, não um framework de testes já implementado.
 
 ## MCP e validação repetível
 

@@ -45,7 +45,7 @@ Este registro oferece rastreabilidade sem repetir as regras detalhadas de `GAME_
 - Contexto: o projeto precisa de um fluxo permanente para trabalho operacional por agentes de IA.
 - Decisão: o responsável define direção, prioridades e aprovações; agentes executam o escopo autorizado e validam resultados. `AGENTS.md` contém instruções operacionais, `docs/AI_WORKFLOW.md` detalha o fluxo e este registro preserva decisões rastreáveis. Skills, scripts, integrações e CI são usados conforme forem disponibilizados e validados.
 - Justificativa: manter responsabilidades e fontes de verdade explícitas, com resultados verificáveis.
-- Consequências: gameplay novo não é aprovado por inferência; geração paga, novas dependências, mudanças arquiteturais significativas e operações de Git respeitam os limites de aprovação documentados. As seis Skills centrais estão implementadas. Scripts, hooks, pipeline de assets, testes automatizados e CI continuam planejados; composição verificada de Skills não equivale a garantia de orquestração automática geral.
+- Consequências: gameplay novo não é aprovado por inferência; geração paga, novas dependências, mudanças arquiteturais significativas e operações de Git respeitam os limites de aprovação documentados. As seis Skills centrais e os scripts de bootstrap, resolução do Godot, diagnóstico do ambiente, validação local de Skills e validação unificada do projeto estão implementados. Hooks, pipeline de assets, testes automatizados e CI continuam planejados; composição verificada de Skills não equivale a garantia de orquestração automática geral.
 - Referências: `AGENTS.md`, `docs/AI_WORKFLOW.md`, tarefa AI-01.
 
 ## Evidências de implementação relacionadas
@@ -57,4 +57,8 @@ Esta seção registra resultados observados e limitações; não cria nem altera
 - A seleção independente de cada Skill em tarefas únicas ainda não foi validada.
 - A validação manual dos frontmatters passou. O `quick_validate.py` não foi executado porque Python não está disponível no ambiente atual.
 - A resolução do Godot pelo `GODOT_PATH` do ambiente User do Windows, `--version` e a importação headless passaram com código de saída 0.
+- `Resolve-Godot.ps1` e `Validate-Environment.ps1` passaram nos cenários positivos e negativos executados no Windows PowerShell 5.1.26100.9711; compatibilidade em outras plataformas não foi validada.
+- `Validate-Skills.ps1` aplica convenções específicas deste repositório sem depender do validador oficial em Python; essa validação local não comprova conformidade com o formato oficial de Skills.
+- `Validate-Project.ps1` compõe as validações existentes nos modos `Full` e `Quick`, relata checks ignorados sem tratá-los como executados e compara fingerprints de arquivos visíveis ao repositório antes e depois da execução. Essa comparação não cobre caches e artefatos ignorados, mudanças apenas no índice, diretórios nem arquivos de reparse point que não puderam ser lidos.
+- `bootstrap.ps1` usa `Quick` por padrão, delega ao validador consolidado e fornece orientações manuais para capacidades ausentes e integrações externas. Não instala ferramentas, altera configurações persistentes nem verifica conectividade MCP.
 - Importação bem-sucedida não comprova comportamento de gameplay ou runtime; esses testes ainda não existem.

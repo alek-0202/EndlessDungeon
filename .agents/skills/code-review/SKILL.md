@@ -17,8 +17,9 @@ Read `AGENTS.md`, `docs/AI_WORKFLOW.md`, the request and approved scope, relevan
 
 1. Confirm branch, comparison base, tracked and untracked changes, and which files are in scope.
 2. Inspect actual code and documentation changes for correctness, regressions, security, maintainability, architectural consistency, and unapproved behavior.
-3. Check whether relevant validation ran and whether its evidence supports the claims made. Distinguish a verified defect from a potential risk or missing test.
-4. Report findings by severity with file references and actionable explanations; then list residual risks and validation gaps. If no findings remain, state what was reviewed and its limits.
+3. Review available structured results from `tools/validation/Validate-Project.ps1` and any feature-specific checks. Identify failed, skipped, warning, missing, or insufficient validation and distinguish a verified defect from a potential risk or missing test.
+4. Do not automatically repeat expensive checks when trustworthy results cover the current repository state. Revalidate when relevant files, environment prerequisites, or other evidence have changed since those results were produced.
+5. Report findings by severity with file references and actionable explanations; then list residual risks and validation gaps. If no findings remain, state what was reviewed and its limits.
 
 ## Approval and failure boundaries
 

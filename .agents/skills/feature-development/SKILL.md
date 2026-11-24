@@ -19,7 +19,8 @@ Read `AGENTS.md`, the request, relevant rules in `docs/GAME_DESIGN.md`, boundari
 2. Plan the smallest change that fits existing Godot and GDScript conventions; identify validation and review needs.
 3. Implement only the approved behavior, preserving unrelated work and separating reusable content, mutable run state, logic, and presentation as required by the architecture.
 4. When Godot MCP materially helps, discover only the tools relevant to the intended operation, then use supported inspection or editor operations and check each result. Do not assume a tool is available or successful.
-5. Run relevant checks with `game-validation` guidance, inspect the diff with `code-review` guidance when useful, correct implementation defects, and update affected documentation.
+5. Run `tools/validation/Validate-Project.ps1` with `game-validation` guidance and add feature-specific checks when appropriate. Use `Full` when changes affect Godot code, scenes, resources, or project configuration. Treat successful import as loading evidence, not proof of runtime or gameplay behavior.
+6. Inspect the diff with `code-review` guidance when useful, correct implementation defects, and update affected documentation.
 
 ## Approval and failure boundaries
 

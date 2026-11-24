@@ -18,5 +18,6 @@
 
 ## Ao concluir
 
-- Execute as verificações pertinentes ao trabalho realizado e relate exatamente o que foi validado.
+- Use `tools/validation/Validate-Project.ps1` como entrada canônica de validação. Use `Quick` para feedback local sem importação Godot e `Full` quando mudanças afetarem código, cenas, resources ou configurações Godot, ou antes de uma entrega que exija evidência de importação.
+- Execute verificações adicionais específicas da mudança quando necessárias. Relate resultados e códigos de saída reais, incluindo checks com falha, ignorados, warnings e limitações; importação bem-sucedida não comprova gameplay.
 - Não faça commits ou pushes sem solicitação explícita.

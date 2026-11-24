@@ -16,10 +16,11 @@ Read `AGENTS.md` and the task request. Check the current branch, working tree, a
 ## Procedure
 
 1. Confirm branch, remote relationship when relevant, and tracked and untracked changes before any edit.
-2. Classify the task and identify affected systems and documents.
-3. Separate established decisions from tentative examples, proposals, and open questions; cite the source of each relevant claim.
-4. Identify missing decisions, constraints, and the Skills that may help with the actual task, such as `game-design`, `feature-development`, `asset-generation`, `game-validation`, or `code-review`. Treat composition as a manual choice; automatic orchestration is unverified.
-5. Return a concise context map and the next safe action. Do not modify project files solely for discovery.
+2. On a new machine or when environment readiness is relevant or uncertain, consult `tools/setup/bootstrap.ps1` or the existing structured environment diagnostics. Do not require bootstrap for every task.
+3. Classify the task and identify affected systems and documents.
+4. Separate established decisions from tentative examples, proposals, and open questions; cite the source of each relevant claim.
+5. Identify missing decisions, constraints, and the Skills that may help with the actual task, such as `game-design`, `feature-development`, `asset-generation`, `game-validation`, or `code-review`. Treat composition as a manual choice; automatic orchestration is unverified.
+6. Return a concise context map and the next safe action. Do not modify project files solely for discovery.
 
 ## Approval and failure boundaries
 
