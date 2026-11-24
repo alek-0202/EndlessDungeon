@@ -1,33 +1,41 @@
 # Roadmap
 
-As etapas abaixo são marcos pequenos e verificáveis. Itens além do protótipo são direções possíveis, não compromissos obrigatórios. Regras de gameplay permanecem pendentes até aprovação.
+As etapas são marcos de validação, não compromissos de calendário. A visão inclui partidas de até quatro jogadores, mas o escopo e o momento de cada funcionalidade multiplayer dependem de decisões futuras. Nenhuma etapa presume uma implementação específica de rede ou backend.
 
-## 1. Protótipo 2D mínimo
+## 1. Protótipo 2D de combate e progressão
 
 **Meta:** um personagem, um inimigo, combate automático, HUD básico e progressão temporária simples.
 
-**Verificação:** iniciar uma sessão de protótipo, observar personagem e inimigo no HUD, acompanhar o combate automático e confirmar que uma mudança temporária de progressão é representada durante a sessão. Os detalhes de vitória, derrota, morte, dano e recompensa precisam ser definidos antes de implementá-los.
+O desenvolvimento inicial permanece offline-first. Este marco não exige todos os recursos multiplayer da visão final. A inclusão de qualquer capacidade multiplayer no protótipo ainda precisa de definição de escopo.
 
-## 2. Revisar o loop com base no protótipo
+**Verificação:** iniciar uma sessão, observar personagem e inimigo no HUD, acompanhar o combate automático e confirmar uma mudança temporária de progressão. As regras necessárias de combate, derrota, morte e recompensa devem ser aprovadas antes de implementá-las.
 
-Avaliar se o loop demonstra a direção idle RPG e quais dados de personagem e inimigo são necessários. Registrar decisões aprovadas e manter explícitas as questões ainda abertas.
+## 2. Validar preparação de build e estrutura da run
 
-**Verificação:** design e arquitetura descrevem o comportamento observado e as decisões acordadas sem transformar hipóteses em regras.
+Depois do protótipo, avaliar a sequência de gerar modificadores da dungeon, inspecioná-los, escolher um preset e entrar. Validar a progressão até o chefe final e planejar o escopo de implementação e validação do farm opcional pós-chefe previsto no design.
 
-## 3. Expandir conteúdo orientado a dados, se necessário
+**Verificação:** a sequência e as escolhas que afetam a run estão descritas e podem ser observadas no protótipo expandido; qualquer regra ainda incerta está registrada como aberta.
 
-Introduzir definições reutilizáveis para os tipos de conteúdo aprovados, começando apenas pelos que o protótipo necessita. A expansão para classes, equipamentos, presets, habilidades e modificadores adicionais depende de prioridade e design aprovados.
+## 3. Expandir conteúdo e recompensas orientados a dados, conforme prioridade
 
-**Verificação:** conteúdo inicial pode ser configurado sem duplicar lógica específica para cada definição.
+Introduzir somente os dados necessários para classes, habilidades, itens, inimigos, modificadores, raridades, afixos e loot aprovados. Ao abordar equipamento, respeitar as seis raridades e os limites independentes de Mythic e Divine, incluindo os slots exclusivos de Divine, sem definir efeitos ou taxas de drop ainda em aberto. A implementação de mochila, seleção final de recompensa e ferreiro depende de definir os fluxos e detalhes que ainda estão em aberto.
 
-## 4. Definir persistência e regras de run antes de ampliá-las
+**Verificação:** o conteúdo inicial pode ser configurado sem duplicar lógica específica para cada definição, e regras de drop e retenção correspondem às decisões aprovadas.
 
-Decidir o que persiste, como a morte afeta os estados e como runs interrompidas são tratadas antes de implementar salvamento ou continuidade de run.
+## 4. Definir persistência e regras de continuidade
 
-**Verificação:** as regras foram aprovadas e documentadas; qualquer implementação posterior corresponde a elas.
+Decidir como o progresso permanente é salvo, como runs interrompidas são tratadas e como escolhas de manter/descartar feitas durante a run se relacionam à seleção final, antes de implementar salvamento ou retomada de sessão.
 
-## 5. Avaliar progressão de dungeon e balanceamento
+**Verificação:** as regras aprovadas estão documentadas e uma implementação posterior consegue respeitá-las sem presumir resultados de morte ou desconexão.
 
-Explorar dificuldade, recompensas e variedade de builds de inimigos depois que o loop básico estiver validado. Dungeon infinita é uma direção da visão, mas não exige uma fórmula ou sistema completo no protótipo inicial.
+## 5. Explorar multiplayer e sistemas compartilhados, após decidir o modelo
 
-**Verificação:** a abordagem escolhida pode ser observada e ajustada com conteúdo de teste, sem assumir equilíbrio definitivo.
+A visão contempla até quatro jogadores, personagens e builds individuais, drops individuais e partes compartilhadas da dungeon e das recompensas. Um marco multiplayer só deve ser planejado após decidir modalidade de sessão, regras de grupo, distribuição de recompensas e escopo técnico. Não é requisito do primeiro protótipo.
+
+**Verificação:** um escopo multiplayer concreto pode ser validado com regras claras para estado individual, estado compartilhado, morte, recompensas e evolução de monstros. A tecnologia e as etapas dependem dessas decisões.
+
+## 6. Avaliar endgame e balanceamento
+
+Explorar progressão potencialmente infinita, teto de raridade por nível de dungeon, recompensas, builds de inimigos, Arcana, evolução de monstros e sistemas de endgame conforme prioridade. Valores de exemplo não são balanceamento final.
+
+**Verificação:** os sistemas selecionados podem ser observados e ajustados com conteúdo de teste, sem presumir equilíbrio definitivo nem exigir a implementação de todas as ideias da visão.

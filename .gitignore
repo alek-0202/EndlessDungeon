@@ -13,3 +13,17 @@ Desktop.ini
 # IDE
 .vscode/*
 !.vscode/extensions.json
+
+# Local AI credentials and machine-specific configuration
+/.env
+/.env.local
+/.mcp.json
+/.codex/config.toml
+/.codex/auth.json
+/.codex/.env
+/.codex/*.local.toml
+/.codex/*.local.json
+/.agents/.env
+/.agents/*.local.toml
+/.agents/*.local.json
+/~/.codex/config.toml
