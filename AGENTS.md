@@ -5,6 +5,7 @@
 - Confirme a branch atual e o estado do Git antes de qualquer trabalho.
 - Trabalhe apenas na branch autorizada para a tarefa. Antes de implementar, atualize a branch com o remoto quando houver uma branch remota correspondente e o working tree estiver limpo. Não descarte nem sobrescreva alterações locais não resolvidas.
 - Leia este arquivo e os documentos relevantes em `docs/` antes de modificar o projeto.
+- Siga `docs/AI_WORKFLOW.md` para o ciclo de trabalho e consulte `docs/DECISIONS.md` para decisões registradas. Use `docs/GAME_DESIGN.md` para regras de gameplay, `docs/ARCHITECTURE.md` para limites técnicos e `docs/ROADMAP.md` para prioridades.
 
 ## Durante o trabalho
 
