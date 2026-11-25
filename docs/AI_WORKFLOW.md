@@ -1,6 +1,6 @@
 # Fluxo de trabalho com IA
 
-Este documento descreve o fluxo operacional pretendido para o desenvolvimento de Endless Dungeon. O fluxo é uma regra de trabalho. As seis Skills centrais e os primeiros scripts de diagnóstico e validação estão implementados; hooks, pipeline de assets, testes automatizados e CI só passam a operar quando forem criados e validados.
+Este documento descreve o fluxo operacional pretendido para o desenvolvimento de Endless Dungeon. O fluxo é uma regra de trabalho. As seis Skills centrais, os primeiros scripts de diagnóstico e validação e o adaptador do hook `Stop` estão implementados. Os quatro cenários de integração do adaptador foram verificados; a integração nativa foi adiada e a configuração de projeto está desativada. Pipeline de assets e testes passam a evoluir junto com gameplay; CI/CD fica adiado até oferecer valor concreto.
 
 ## Papéis e responsabilidades
 
@@ -36,6 +36,12 @@ Uma entrada no registro de decisões aponta para a documentação de detalhe; el
 8. **Atualizar documentação:** refletir decisões aprovadas e mudanças relevantes sem transformar hipóteses em regras.
 9. **Entregar relatório:** indicar arquivos alterados, validações executadas, resultados verificados, decisões pendentes, riscos e limites.
 
+## Abordagem de desenvolvimento após AI-05
+
+Após concluir AI-05, iniciar gameplay imediatamente pelo menor incremento aprovado e observável. Definir somente a direção de arte essencial antes dos primeiros assets; desenvolver o pipeline de assets e testes automatizados conforme necessidades reais surgirem durante gameplay. Adiar CI/CD até que um risco repetido, colaboração ou preparação de entrega justifique seu custo.
+
+Usar prompts concisos, implementação autônoma dentro do escopo aprovado, validação proporcional ao risco e relatórios curtos. Validar o fluxo de IA por meio da implementação real do jogo. Evitar infraestrutura, abstrações e checkpoints intermediários sem uma necessidade concreta. Esses princípios não reduzem limites de segurança, aprovações, proteção de credenciais, validação `Full` quando exigida nem revisão de alterações inesperadas.
+
 ## Autonomia e limites de aprovação
 
 Agentes podem inspecionar, planejar, implementar o escopo aprovado, testar e corrigir erros de implementação. Não podem inventar regras de gameplay nem tratá-las como aprovadas por silêncio. Dúvidas que afetem uma implementação ficam registradas como questões em aberto até decisão do responsável.
@@ -48,7 +54,7 @@ Skills locais ao repositório ficam em `.agents/skills/`, cada uma com responsab
 
 A descoberta nativa das seis Skills e sua seleção implícita conjunta em uma solicitação com múltiplas tarefas foram verificadas. Isso demonstra composição orientada pela solicitação nesse cenário; não garante orquestração automática para todos os fluxos. Testes independentes de seleção para tarefas únicas ainda estão pendentes.
 
-Os scripts determinísticos de bootstrap, resolução do Godot, diagnóstico do ambiente, validação de Skills e validação unificada do projeto estão implementados. Hooks, pipeline de assets, testes automatizados e CI ainda não foram implementados; sua criação, ativação e validação pertencem a etapas futuras.
+Os scripts determinísticos de bootstrap, resolução do Godot, diagnóstico do ambiente, validação de Skills e validação unificada do projeto estão implementados. O adaptador de `Stop` e a configuração preservada foram testados, mas o hook de projeto está desativado até que o disparo nativo seja verificado. Outros hooks permanecem futuros, pipeline de assets e testes evoluem com gameplay, e CI/CD aguarda valor concreto.
 
 ## Automação local do ambiente
 
@@ -92,9 +98,27 @@ Godot MCP, PixelLab MCP e a integração do Codex no VS Code são configurados e
 
 Os cinco scripts retornam código 0 quando seus requisitos obrigatórios passam e código 1 quando falham. Foram testados no Windows PowerShell 5.1.26100.9711. Operações específicas do ambiente User são condicionadas ao Windows; compatibilidade em outras plataformas ainda não foi verificada. A descoberta de executáveis não valida conectividade MCP, integração do Codex no VS Code nem comportamento de gameplay ou runtime. A detecção de efeitos colaterais de `Validate-Project.ps1` cobre arquivos rastreados e arquivos não ignorados pelo Git; caches e artefatos locais ignorados, mudanças apenas no índice, diretórios e arquivos de reparse point que não puderam ser lidos ficam fora dessa comparação.
 
-## Backlog de regressão para AI-08
+## Hook nativo Stop
 
-Preservar como cenários para automação futura: precedência, compatibilidade, falha e timeout da resolução do Godot; capacidades obrigatórias e opcionais do ambiente; manifests, referências, ignore e heurísticas de segurança das Skills; modos Quick e Full, saída humana e JSON, execução externa, whitespace tracked, staged e untracked, falhas de componentes, códigos nativos, timeout, dependências ignoradas e detecção de criação, remoção e modificação por fingerprints; bootstrap real, repetido e externo, remediações obrigatórias e opcionais, ausência de componentes, JSON de falha e preservação de ambiente e Git. Incluir sentinelas controladas para confirmar que diagnósticos não expõem valores sensíveis. Esses cenários são backlog de AI-08, não um framework de testes já implementado.
+O projeto preserva a configuração testada em `.codex/hooks.json.disabled` e o adaptador em `tools/hooks/Invoke-CodexStopValidation.ps1`. O nome `.disabled` impede que Codex descubra essa configuração como hook ativo. Quando ativada, ela registra um único handler `command` para `Stop`, com timeout externo de 90 segundos. A configuração usa o schema documentado de `hooks.json`, mantém o escopo no repositório e localiza a raiz por Git para funcionar a partir de subdiretórios e caminhos com espaços. No Windows, a invocação usa Windows PowerShell sem perfil e aplica `ExecutionPolicy Bypass` somente ao processo do hook e ao subprocesso do validador; ela não altera políticas persistentes.
+
+`tools/hooks/Invoke-CodexStopValidation.ps1` lê o evento JSON de `stdin` e usa apenas `hook_event_name`, `cwd` e `stop_hook_active`. Ele valida o evento, resolve e identifica o repositório Endless Dungeon, e consulta o Git separadamente para mudanças staged, mudanças tracked unstaged e arquivos untracked não ignorados. Arquivos ignorados não são enumerados nem lidos. Working tree limpo encerra sem executar validação. Quando há mudanças visíveis ao repositório, o adaptador executa `Validate-Project.ps1 -Mode Quick -Json`; não duplica os checks do validador e nunca executa `Full`.
+
+Sucesso, inclusive com warnings, permite a conclusão sem nova rodada. Uma falha obrigatória na primeira execução devolve a decisão documentada `block` com um resumo limitado a código de saída e identificadores seguros de checks, solicitando no máximo uma continuação. Se `stop_hook_active` já for verdadeiro, o adaptador revalida quando aplicável, devolve a falha persistente como `systemMessage` sem novo bloqueio e permite a conclusão. Falhas de infraestrutura também usam `systemMessage`, são identificadas como infraestrutura, não são apresentadas como validação bem-sucedida e não criam continuação automática.
+
+O prazo interno total é 80 segundos e o subprocesso de validação recebe no máximo 70 segundos, deixando margem dentro do timeout nativo de 90 segundos. Processos externos de Git recebem até 5 segundos por chamada, limitados pelo prazo total. Em timeout, o adaptador tenta encerrar a árvore iniciada por ele com `taskkill /T`; se isso não estiver disponível ou falhar, encerra o processo exato que iniciou. Esse fallback não garante o encerramento de descendentes que já tenham se desvinculado do processo pai.
+
+O adaptador não lê `transcript_path`, histórico da conversa, configuração MCP privada ou credenciais; não persiste o evento nem encaminha stdout ou stderr brutos do validador. A resposta usa somente campos documentados do hook e um resumo allowlisted e limitado. O hook não concede permissão para gameplay, arquitetura, dependências, PixelLab, commit, push ou merge, não invoca o Codex recursivamente e não substitui `Full`, testes de gameplay, revisão de código ou CI.
+
+A ativação futura exige renomear `.codex/hooks.json.disabled` para `.codex/hooks.json`, revisar a definição exata no mecanismo nativo do Codex, confiar nela no cliente em uso e observar o disparo de `Stop` antes de declarar a integração concluída. Não usar `--dangerously-bypass-hook-trust`. A desativação atual não altera configuração de usuário ou sistema. Até a ativação ser comprovada, executar `Validate-Project.ps1` explicitamente conforme `AGENTS.md`; o hook não é um controle operacional.
+
+Esta primeira versão aceita redundância: uma árvore suja não comprova que a rodada atual modificou arquivos, pode disparar Quick em uma tarefa somente leitura e pode repetir uma validação já executada. Uma árvore limpa não comprova que não houve alterações anteriores na rodada. O hook não valida snapshot staged isolado nem commit enviado. Bancos de sessão, caches, recibos de validação e inspeção de transcript não são usados para compensar essas limitações.
+
+Em 2026-11-25, um clone local isolado com caminho contendo espaços verificou o adaptador com o Git e o validador reais: árvore limpa ignorou um validador propositalmente inválido e retornou `continue: true` (saída 0); árvore suja sem falha retornou `continue: true` (saída 0); whitespace tracked produziu falha `whitespace-unstaged` e um único `decision: block` (saída 0); com `stop_hook_active: true`, a mesma falha retornou `systemMessage` e `continue: true`, sem novo bloqueio (saída 0). O comando `commandWindows` também retornou `continue: true` (saída 0) com evento realista. Um probe `.txt` produziu falha real em `whitespace-untracked` (`Quick` com saída 1), mas `codex exec --json --ephemeral` concluiu com saída 0 sem bloqueio; o arquivo de probe foi removido. Na investigação final, a CLI interativa descobriu exatamente um hook `Stop` da configuração de projeto, com `Installed: 1`, `Active: 0` e `Review: 1`, exibindo `New hook - review required`. O responsável havia informado confiança manual e reinício do VS Code; essa confiança não estava efetiva nessa sessão da CLI. Não foi concedida nova confiança na CLI nem observado disparo no VS Code. A causa observada do não disparo na CLI foi a barreira de confiança; o comportamento do cliente VS Code permanece sem comprovação. A configuração foi renomeada para `.codex/hooks.json.disabled`, preservando adaptador e definição para ativação futura. Após essa desativação, `Validate-Project.ps1 -Mode Full -Json` passou com saída 0: 11 checks passaram, nenhum falhou, `gameplay-tests` foi ignorado por indisponibilidade, e houve um warning de Python opcional ausente; a importação Godot teve saída nativa 0 e a verificação de efeitos colaterais passou. A integração nativa do hook permanece adiada; a validação explícita segue operacional.
+
+## Regressão incremental
+
+Preservar como cenários candidatos: precedência, compatibilidade, falha e timeout da resolução do Godot; capacidades obrigatórias e opcionais do ambiente; manifests, referências, ignore e heurísticas de segurança das Skills; modos Quick e Full, saída humana e JSON, execução externa, whitespace tracked, staged e untracked, falhas de componentes, códigos nativos, timeout, dependências ignoradas e detecção de criação, remoção e modificação por fingerprints; bootstrap real, repetido e externo, remediações obrigatórias e opcionais, ausência de componentes, JSON de falha e preservação de ambiente e Git. Incluir sentinelas controladas para confirmar que diagnósticos não expõem valores sensíveis. Implementar testes persistentes de forma incremental quando gameplay ou um risco concreto justificar; esta lista não exige um marco de infraestrutura separado nem representa um framework já implementado.
 
 ## MCP e validação repetível
 

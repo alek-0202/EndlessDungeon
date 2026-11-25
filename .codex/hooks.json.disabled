@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"$root = (& git rev-parse --show-toplevel 2>$null); if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace([string]$root)) { [Console]::Out.WriteLine('{\\\"continue\\\":true,\\\"systemMessage\\\":\\\"Stop hook infrastructure failure: repository root could not be resolved. Run Quick validation manually and report the failure.\\\"}'); exit 0 }; & (Join-Path -Path ([string]$root).Trim() -ChildPath 'tools/hooks/Invoke-CodexStopValidation.ps1')\"",
+            "commandWindows": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"$root = (& git rev-parse --show-toplevel 2>$null); if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace([string]$root)) { [Console]::Out.WriteLine('{\\\"continue\\\":true,\\\"systemMessage\\\":\\\"Stop hook infrastructure failure: repository root could not be resolved. Run Quick validation manually and report the failure.\\\"}'); exit 0 }; & (Join-Path -Path ([string]$root).Trim() -ChildPath 'tools/hooks/Invoke-CodexStopValidation.ps1')\"",
+            "timeout": 90,
+            "statusMessage": "Running Endless Dungeon Quick validation"
+          }
+        ]
+      }
+    ]
+  }
+}

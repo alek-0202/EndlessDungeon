@@ -2,6 +2,12 @@
 
 As etapas são marcos de validação, não compromissos de calendário. A visão inclui partidas de até quatro jogadores, mas o escopo e o momento de cada funcionalidade multiplayer dependem de decisões futuras. Nenhuma etapa presume uma implementação específica de rede ou backend.
 
+## Abordagem de desenvolvimento
+
+Gameplay começa imediatamente após AI-05 e serve como validação prática do fluxo de IA. Cada incremento deve usar um prompt conciso, escopo aprovado, implementação autônoma, validação proporcional ao risco e relatório curto. Infraestrutura e checkpoints intermediários só entram quando resolvem uma necessidade concreta.
+
+Antes dos primeiros assets, definir somente a direção de arte essencial para manter coerência. Pipeline de assets e testes automatizados evoluem junto com gameplay. CI/CD permanece adiado até colaboração, regressões repetidas ou preparação de entrega demonstrarem valor concreto. Aprovações de design, geração paga, dependências, segurança, credenciais, validação `Full` aplicável e operações Git continuam seguindo `AGENTS.md` e `docs/AI_WORKFLOW.md`.
+
 ## 1. Protótipo 2D de combate e progressão
 
 **Meta:** um personagem, um inimigo, combate automático, HUD básico e progressão temporária simples.
