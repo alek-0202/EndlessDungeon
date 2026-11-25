@@ -302,11 +302,12 @@ function ConvertTo-SafeProjectDiagnostic {
     return $sanitized.Trim()
 }
 
-function Invoke-GodotProjectImport {
+function Invoke-GodotProjectRun {
     param(
         [string]$ExecutablePath,
         [string]$Root,
-        [int]$TimeoutSeconds
+        [int]$TimeoutSeconds,
+        [switch]$GameplayTests
     )
 
     $stopwatch = [Diagnostics.Stopwatch]::StartNew()
@@ -314,7 +315,13 @@ function Invoke-GodotProjectImport {
     $startInfo = New-Object Diagnostics.ProcessStartInfo
     $startInfo.FileName = $ExecutablePath
     $quotedRoot = '"' + $Root.Replace('"', '\"') + '"'
-    $startInfo.Arguments = "--headless --path $quotedRoot --editor --import --quit"
+    $operation = if ($GameplayTests) { 'Godot gameplay tests' } else { 'Godot import' }
+    $startInfo.Arguments = if ($GameplayTests) {
+        "--headless --path $quotedRoot --script res://tests/combat/test_combat.gd"
+    }
+    else {
+        "--headless --path $quotedRoot --editor --import --quit"
+    }
     $startInfo.WorkingDirectory = $Root
     $startInfo.UseShellExecute = $false
     $startInfo.CreateNoWindow = $true
@@ -333,7 +340,7 @@ function Invoke-GodotProjectImport {
             try { $process.Kill() } catch { }
             try { $process.WaitForExit() } catch { }
             $stopwatch.Stop()
-            return [pscustomobject]@{ Started = $true; TimedOut = $true; ExitCode = $null; DurationMs = $stopwatch.ElapsedMilliseconds; Output = @('Godot import exceeded the configured timeout.'); Error = $null }
+            return [pscustomobject]@{ Started = $true; TimedOut = $true; ExitCode = $null; DurationMs = $stopwatch.ElapsedMilliseconds; Output = @("$operation exceeded the configured timeout."); Error = $null }
         }
 
         [Threading.Tasks.Task]::WaitAll(@($stdoutTask, $stderrTask))
@@ -344,7 +351,7 @@ function Invoke-GodotProjectImport {
     }
     catch {
         $stopwatch.Stop()
-        return [pscustomobject]@{ Started = $false; TimedOut = $false; ExitCode = $null; DurationMs = $stopwatch.ElapsedMilliseconds; Output = @('Godot process could not be started.'); Error = $_.Exception.Message }
+        return [pscustomobject]@{ Started = $false; TimedOut = $false; ExitCode = $null; DurationMs = $stopwatch.ElapsedMilliseconds; Output = @("$operation process could not be started."); Error = $_.Exception.Message }
     }
     finally {
         $process.Dispose()
@@ -554,6 +561,8 @@ function Test-EndlessDungeonProject {
         [void]$checks.Add((New-ProjectCheck -Id 'whitespace-untracked' -Description 'Relevant non-ignored untracked text files pass Git whitespace validation.' -Mandatory $true -Status 'Skipped' -DurationMs 0 -NativeExitCode $null -Findings @((New-ProjectFinding -CheckId 'whitespace-untracked' -Severity 'Information' -Category 'DependencyFailed' -File $null -Line $null -Message 'Untracked whitespace validation was skipped because Git context validation failed.')) -Data $null))
     }
 
+    $godotExecutable = $null
+    $importPassed = $false
     if ($Mode -eq 'Quick') {
         [void]$checks.Add((New-ProjectCheck -Id 'godot-import' -Description 'Godot imports the project headlessly within the configured timeout.' -Mandatory $false -Status 'Skipped' -DurationMs 0 -NativeExitCode $null -Findings @((New-ProjectFinding -CheckId 'godot-import' -Severity 'Information' -Category 'QuickMode' -File $null -Line $null -Message 'Quick mode intentionally skips the Godot headless import.')) -Data ([pscustomobject]@{ TimeoutSeconds = $GodotTimeoutSeconds })))
     }
@@ -567,7 +576,7 @@ function Test-EndlessDungeonProject {
             [void]$checks.Add((New-ProjectCheck -Id 'godot-import' -Description 'Godot imports the project headlessly within the configured timeout.' -Mandatory $true -Status 'Skipped' -DurationMs 0 -NativeExitCode $null -Findings @((New-ProjectFinding -CheckId 'godot-import' -Severity 'Information' -Category 'DependencyFailed' -File $null -Line $null -Message 'Godot import was skipped because its validated executable or project structure prerequisite failed.')) -Data ([pscustomobject]@{ TimeoutSeconds = $GodotTimeoutSeconds })))
         }
         else {
-            $importResult = Invoke-GodotProjectImport -ExecutablePath $godotExecutable -Root $root -TimeoutSeconds $GodotTimeoutSeconds
+            $importResult = Invoke-GodotProjectRun -ExecutablePath $godotExecutable -Root $root -TimeoutSeconds $GodotTimeoutSeconds
             $importFindings = New-Object System.Collections.Generic.List[object]
             if (-not $importResult.Started) {
                 [void]$importFindings.Add((New-ProjectFinding -CheckId 'godot-import' -Severity 'Error' -Category 'GodotProcessStartFailed' -File $null -Line $null -Message 'Godot import process could not be started.'))
@@ -579,15 +588,37 @@ function Test-EndlessDungeonProject {
                 [void]$importFindings.Add((New-ProjectFinding -CheckId 'godot-import' -Severity 'Error' -Category 'GodotImportFailed' -File $null -Line $null -Message "Godot import returned exit code $($importResult.ExitCode)."))
             }
             foreach ($finding in $importFindings) { [void]$allFindings.Add($finding) }
+            $importPassed = $importFindings.Count -eq 0
             [void]$checks.Add((New-ProjectCheck -Id 'godot-import' -Description 'Godot imports the project headlessly within the configured timeout.' -Mandatory $true -Status $(if ($importFindings.Count -eq 0) { 'Passed' } else { 'Failed' }) -DurationMs $importResult.DurationMs -NativeExitCode $importResult.ExitCode -Findings $importFindings.ToArray() -Data ([pscustomobject]@{ TimeoutSeconds = $GodotTimeoutSeconds; TimedOut = $importResult.TimedOut; Diagnostics = $importResult.Output })))
         }
     }
 
     [void]$limitations.Add('Headless import validates project loading and resource import, not gameplay or runtime behavior.')
-    [void]$limitations.Add('Automated gameplay tests are not available in this project yet.')
+    [void]$limitations.Add('Automated gameplay tests cover the combat foundation prototype, not all planned gameplay or visual presentation.')
     [void]$limitations.Add('Side-effect detection fingerprints tracked and non-ignored untracked files; ignored caches, ignored local artifacts, Git index-only changes, directories, and skipped reparse-point files are outside its scope.')
     [void]$limitations.Add('A detected repository change is reported without attributing it to the validator or to a concurrent process.')
-    [void]$checks.Add((New-ProjectCheck -Id 'gameplay-tests' -Description 'Automated gameplay and runtime behavior tests execute.' -Mandatory $false -Status 'Skipped' -DurationMs 0 -NativeExitCode $null -Findings @((New-ProjectFinding -CheckId 'gameplay-tests' -Severity 'Information' -Category 'UnavailableValidation' -File $null -Line $null -Message 'Automated gameplay tests are not available.')) -Data $null))
+    $gameplayTestPath = Join-Path -Path $root -ChildPath 'tests/combat/test_combat.gd'
+    if ($Mode -eq 'Quick') {
+        [void]$checks.Add((New-ProjectCheck -Id 'gameplay-tests' -Description 'Combat foundation gameplay tests execute headlessly.' -Mandatory $false -Status 'Skipped' -DurationMs 0 -NativeExitCode $null -Findings @((New-ProjectFinding -CheckId 'gameplay-tests' -Severity 'Information' -Category 'QuickMode' -File $null -Line $null -Message 'Quick mode intentionally skips Godot gameplay tests.')) -Data $null))
+    }
+    elseif (-not (Test-Path -LiteralPath $gameplayTestPath -PathType Leaf) -or -not $importPassed) {
+        [void]$checks.Add((New-ProjectCheck -Id 'gameplay-tests' -Description 'Combat foundation gameplay tests execute headlessly.' -Mandatory $true -Status 'Skipped' -DurationMs 0 -NativeExitCode $null -Findings @((New-ProjectFinding -CheckId 'gameplay-tests' -Severity 'Information' -Category 'DependencyFailed' -File 'tests/combat/test_combat.gd' -Line $null -Message 'Gameplay tests require the test script and a successful Godot import.')) -Data $null))
+    }
+    else {
+        $gameplayResult = Invoke-GodotProjectRun -ExecutablePath $godotExecutable -Root $root -TimeoutSeconds $GodotTimeoutSeconds -GameplayTests
+        $gameplayFindings = New-Object System.Collections.Generic.List[object]
+        if (-not $gameplayResult.Started) {
+            [void]$gameplayFindings.Add((New-ProjectFinding -CheckId 'gameplay-tests' -Severity 'Error' -Category 'GodotProcessStartFailed' -File $null -Line $null -Message 'Godot gameplay test process could not be started.'))
+        }
+        elseif ($gameplayResult.TimedOut) {
+            [void]$gameplayFindings.Add((New-ProjectFinding -CheckId 'gameplay-tests' -Severity 'Error' -Category 'GameplayTestTimeout' -File $null -Line $null -Message "Godot gameplay tests exceeded $GodotTimeoutSeconds second(s)."))
+        }
+        elseif ($gameplayResult.ExitCode -ne 0 -or @($gameplayResult.Output | Where-Object { $_ -eq 'COMBAT TESTS PASSED' }).Count -eq 0) {
+            [void]$gameplayFindings.Add((New-ProjectFinding -CheckId 'gameplay-tests' -Severity 'Error' -Category 'GameplayTestFailed' -File 'tests/combat/test_combat.gd' -Line $null -Message "Godot gameplay tests failed or omitted their success marker (exit code $($gameplayResult.ExitCode))."))
+        }
+        foreach ($finding in $gameplayFindings) { [void]$allFindings.Add($finding) }
+        [void]$checks.Add((New-ProjectCheck -Id 'gameplay-tests' -Description 'Combat foundation gameplay tests execute headlessly.' -Mandatory $true -Status $(if ($gameplayFindings.Count -eq 0) { 'Passed' } else { 'Failed' }) -DurationMs $gameplayResult.DurationMs -NativeExitCode $gameplayResult.ExitCode -Findings $gameplayFindings.ToArray() -Data ([pscustomobject]@{ TimeoutSeconds = $GodotTimeoutSeconds; TimedOut = $gameplayResult.TimedOut; Diagnostics = $gameplayResult.Output })))
+    }
 
     $sideEffectStopwatch = [Diagnostics.Stopwatch]::StartNew()
     $afterSnapshot = Get-ProjectSnapshot -Root $root -GitPath $gitPath

@@ -89,6 +89,11 @@ Os atributos dos itens rolam dentro de intervalos mínimo e máximo explícitos.
 ### Combate, perigo e progressão da run
 
 - O combate é automático, mas deve conter interações significativas entre causar e receber dano e expor o jogador a perigo real.
+- A apresentação de combate aprovada é 2D top-down em pixel art. A formação dos heróis é circular, estacionária e tem centro fixo; inimigos se aproximam de todas as direções.
+- Movimento, seleção de alvo e ataques são automáticos. Cada build configura a posição radial preferida do personagem entre 0% (centro) e 100% (borda da formação). Classes terão comportamentos padrão próprios, personalizáveis pela build; classes completas e seus padrões ainda não foram definidos.
+- O herói prefere atacar no maior alcance efetivo do modo ativo: aproxima-se apenas até entrar em alcance, ataca assim que estiver pronto e interrompe o movimento ao atacar. Durante o cooldown, afasta-se quando o inimigo encurta a distância; nunca sai da formação circular. A posição radial configurada é uma preferência flexível, subordinada ao alcance tático.
+- Sistemas futuros de ameaça dos inimigos podem escolher heróis individualmente; a presença de um tanque não garante proteção dos demais. Personagens na retaguarda ainda precisam considerar investimento defensivo.
+- Projéteis são entidades espaciais e podem ser interceptados por colisão com alvos válidos. Regras finais de prioridade de alvo, trajetória, bloqueio e efeitos permanecem abertas.
 - A evolução dos monstros deve ir além de aumentar vida e dano. A visão contempla habilidades, passivas, atributos, resistências, imunidades e modificadores com características de build.
 - Itens, passivas e efeitos podem prevenir a morte ou fortalecer o personagem quando está perto da morte ou depois de morrer.
 - Cada jogador recebe duas Arcana aleatórias por run: uma no nível 15 da run e outra no nível 30. Arcana são atribuídas individualmente, diferem das cartas comuns de atributos e podem alterar significativamente uma build, interagindo com classe, equipamento, atributos e mecânicas existentes.
@@ -97,7 +102,19 @@ Os atributos dos itens rolam dentro de intervalos mínimo e máximo explícitos.
 
 - O HUD deve oferecer interação significativa além de observação passiva e gestão básica de recursos.
 - O mapa deve ser mais interessante que uma plataforma plana onde monstros apenas caminham até o jogador, sem exigir ambientes desnecessariamente complexos.
-- Pixel art é a direção visual. Câmera, estrutura do mapa, navegação e apresentação do combate ainda não foram finalizadas.
+- Pixel art 2D top-down é a direção visual do combate. Detalhes de câmera, estrutura do mapa e navegação fora da arena inicial ainda não foram finalizados.
+- Para o protótipo de arena, a resolução lógica provisória é 960×540, com 1920×1080 como referência desktop. Manter filtragem nearest para futuros sprites em pixel art; o zoom da câmera é configurável sem alterar as unidades de combate.
+- O HUD usa uma faixa compacta de estado de combate e navegação inferior persistente. Painéis recolhíveis de Character, Skills, Inventory, Loot, Tactics e Stats ocupam aproximadamente 30% da altura quando abertos; trocar ou fechar um painel não pausa o combate. Estatísticas detalhadas ficam em Character/Stats e controles de posicionamento e ataque em Tactics. Os demais painéis são bases de interface, sem sistemas de gameplay associados neste incremento.
+
+### Recorte jogável de Gameplay 01
+
+O primeiro protótipo apresenta uma arena estacionária, um herói controlado automaticamente, inimigos que surgem de lados diferentes, movimento e seleção automática de alvo, ataques corpo a corpo e projéteis físicos, colisão com alvos válidos, vida, dano, armadura, alcance, frequência de ataque e velocidade de movimento. O HUD mostra o estado de combate, permite ajustar o raio preferido e alternar o ataque demonstrativo; a morte do herói encerra a run local e há reinício. O protótipo usa formas simples no lugar de assets finais.
+
+Após o playtest manual inicial aprovado pelo responsável, Gameplay 01 passou a incluir kiting automático nos dois modos de ataque. A distância preferida é o alcance máximo efetivo, limitada pela borda da formação; a pequena tolerância de posicionamento evita ajustes repetidos e não impede ataques disponíveis.
+
+O responsável aprovou manualmente o combate inicial e o kiting antes de Gameplay 02. A arena lógica foi ampliada para comportar crescimento futuro de grupo e hordas; a formação, os atributos e as distâncias relativas de spawn do protótipo permanecem iguais. O layout do HUD se adapta ao tamanho da janela sem sobrepor controles.
+
+Os valores em data/combat/ e a mitigação de armadura, a escolha do alvo mais próximo, a preferência radial, a tolerância de posicionamento e o ritmo de spawn são provisórios para demonstração e testes. Eles não estabelecem fórmulas nem balanceamento permanente. Não há classes completas, skills, equipamento, progressão, sistema avançado de ameaça ou multiplayer neste recorte.
 
 ## Valores tentativos e exemplos
 
@@ -140,6 +157,8 @@ Os números desta seção ilustram alvos ou propostas iniciais; não são balanc
 ### Runs, combate e morte
 
 - Quais são as regras de dano, tempo de ação, recursos, controle de grupo, vitória sobre monstros e avanço dentro da dungeon?
+- Qual fórmula final relaciona dano e armadura? Quais prioridades de alvo, padrões de classe e regras de movimentação dentro da formação substituirão os comportamentos provisórios do protótipo?
+- Como os sistemas individuais de ameaça, colisão/interceptação de projéteis e outras formas de proteção se aplicam a múltiplos heróis?
 - Como se obtêm recompensas permanentes numa run curta e como se distingue recompensa de run de recompensa final?
 - Como o tempo indicado para mortes funciona? É espera, penalidade ou outra coisa? Quais são as condições, durações e custos de respawn?
 - Quando uma morte individual afeta o participante, a party ou a run? O que ocorre se parte do grupo morrer e os demais continuarem?
@@ -172,6 +191,6 @@ Os números desta seção ilustram alvos ou propostas iniciais; não são balanc
 
 - Arcana são atribuídas automaticamente ou escolhidas entre opções? Qual é seu conjunto, duração e interação com níveis/presets?
 - A engenharia do HUD será universal, específica de classe ou um sistema de progressão separado? Quais decisões estratégicas concretas ela oferece?
-- Qual é a câmera, a estrutura e navegação do mapa e a composição visual do combate e HUD?
+- Quais são os detalhes finais de câmera além do zoom configurável, estrutura e navegação do mapa além da arena inicial, e a composição visual final do combate e HUD?
 
 Não resolva estas questões por inferência durante a implementação; atualize este documento quando decisões forem aprovadas.

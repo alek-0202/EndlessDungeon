@@ -45,7 +45,7 @@ Este registro oferece rastreabilidade sem repetir as regras detalhadas de `GAME_
 - Contexto: o projeto precisa de um fluxo permanente para trabalho operacional por agentes de IA.
 - Decisão: o responsável define direção, prioridades e aprovações; agentes executam o escopo autorizado e validam resultados. `AGENTS.md` contém instruções operacionais, `docs/AI_WORKFLOW.md` detalha o fluxo e este registro preserva decisões rastreáveis. Skills, scripts, integrações e CI são usados conforme forem disponibilizados e validados.
 - Justificativa: manter responsabilidades e fontes de verdade explícitas, com resultados verificáveis.
-- Consequências: gameplay novo não é aprovado por inferência; geração paga, novas dependências, mudanças arquiteturais significativas e operações de Git respeitam os limites de aprovação documentados. As seis Skills centrais e os scripts de bootstrap, resolução do Godot, diagnóstico do ambiente, validação local de Skills e validação unificada do projeto estão implementados. O adaptador de `Stop` teve quatro cenários de integração verificados, mas o hook de projeto permanece desativado e sua integração nativa foi adiada. Outros hooks, pipeline de assets, testes automatizados e CI continuam planejados. Composição verificada de Skills não equivale a garantia de orquestração automática geral.
+- Consequências: gameplay novo não é aprovado por inferência; geração paga, novas dependências, mudanças arquiteturais significativas e operações de Git respeitam os limites de aprovação documentados. As seis Skills centrais e os scripts de bootstrap, resolução do Godot, diagnóstico do ambiente, validação local de Skills e validação unificada do projeto estão implementados. O adaptador de `Stop` teve quatro cenários de integração verificados, mas o hook de projeto permanece desativado e sua integração nativa foi adiada. Gameplay 01 adicionou testes automatizados de combate; outros hooks, pipeline de assets e CI continuam planejados. Composição verificada de Skills não equivale a garantia de orquestração automática geral.
 - Referências: `AGENTS.md`, `docs/AI_WORKFLOW.md`, tarefa AI-01.
 
 ### DEC-004 — Primeiro hook nativo de validação
@@ -68,6 +68,36 @@ Este registro oferece rastreabilidade sem repetir as regras detalhadas de `GAME_
 - Consequências: o roadmap deixa de tratar infraestrutura adicional como pré-requisito para gameplay. Aprovações de gameplay, geração paga, dependências, segurança, proteção de credenciais, validação `Full` aplicável e operações Git mantêm seus limites existentes.
 - Referências: `docs/AI_WORKFLOW.md`, `docs/ROADMAP.md`, tarefa AI-05D.
 
+### DEC-006 — Direção inicial de combate e formação
+
+- Data: 2026-11-25 (decisão explicitada em Gameplay 01)
+- Status: aceita
+- Contexto: o primeiro protótipo precisa tornar observáveis combate automático, posicionamento de build e perigo espacial.
+- Decisão: usar combate 2D top-down em pixel art, arena estacionária e formação circular de centro fixo, com inimigos de todas as direções. Cada build pode configurar preferência radial entre 0% e 100%; comportamentos padrão variam por classe e podem ser personalizados. Projéteis são espaciais e colidem com alvos válidos. Ameaça individual futura não garante proteção por tanque; investimento defensivo continua relevante na retaguarda.
+- Justificativa: estabelecer o recorte aprovado de gameplay sem fixar regras permanentes de balanceamento ou antecipar sistemas avançados.
+- Consequências: Gameplay 01 implementa um herói automático, alvos e movimento automáticos, corpo a corpo, projéteis, atributos básicos, HUD e término/reinício por morte com valores provisórios. Classes completas, ameaça avançada, skills, equipamento, progressão e multiplayer exigem tarefas futuras. Fórmulas finais e prioridades de alvo permanecem abertas.
+- Referências: docs/GAME_DESIGN.md, docs/ARCHITECTURE.md, docs/ROADMAP.md, tarefa Gameplay 01.
+
+### DEC-007 — Kiting automático no combate inicial
+
+- Data: 2026-11-25 (decisão explicitada na tarefa Gameplay 01 — Automatic Kiting)
+- Status: aceita
+- Contexto: o playtest manual do primeiro protótipo passou, mas o movimento automático ainda encurtava o alcance útil e podia atrasar ataques.
+- Decisão: nos ataques corpo a corpo e à distância, preferir o maior alcance efetivo, aproximar-se somente até entrar em alcance, atacar imediatamente quando disponível e parar ao atacar. Durante o cooldown, recuar para recuperar a distância quando necessário. Respeitar sempre a formação circular; tratar a posição radial da build como preferência flexível e evitar oscilação, recuo desnecessário e reinício do cooldown por movimento.
+- Justificativa: melhorar a leitura e a resposta do combate automático sem alterar atributos, controles ou sistemas adiados.
+- Consequências: o movimento tático pode afastar temporariamente o herói de sua preferência radial; a borda da formação pode impedir alcançar a distância ideal. A tolerância de posicionamento é detalhe provisório do protótipo, não regra permanente de balanceamento.
+- Referências: docs/GAME_DESIGN.md, docs/ARCHITECTURE.md, docs/ROADMAP.md, tarefa Gameplay 01 — Automatic Kiting.
+
+### DEC-008 — Fundação de arena e HUD
+
+- Data: 2026-11-25 (decisão explicitada na tarefa Gameplay 02)
+- Status: aceita
+- Contexto: o responsável aprovou manualmente o combate inicial e o kiting; a área e o HUD precisam comportar expansão futura sem alterar o combate aprovado.
+- Decisão: usar 960×540 como resolução lógica provisória e 1920×1080 como referência desktop, preservar compatibilidade com pixel art e filtragem nearest, separar unidades do mundo, câmera com zoom configurável e layout do HUD. Manter navegação inferior persistente e painéis recolhíveis de aproximadamente 30% da altura para Character, Skills, Inventory, Loot, Tactics e Stats; troca e fechamento não pausam combate. Estado essencial permanece compacto e visível; controles e atributos atuais migram para seus painéis.
+- Justificativa: aumentar a área utilizável e criar uma base responsiva para até quatro heróis e hordas futuras sem implementar seus sistemas ainda.
+- Consequências: tamanho da arena e apresentação mudam, enquanto raio da formação, atributos e distâncias relativas de spawn permanecem provisoriamente iguais. Os painéis sem mecânicas próprias exibem apenas estrutura inicial; design visual detalhado continua aberto.
+- Referências: docs/GAME_DESIGN.md, docs/ARCHITECTURE.md, docs/ROADMAP.md, tarefa Gameplay 02 — Arena & HUD Foundation.
+
 ## Evidências de implementação relacionadas
 
 Esta seção registra resultados observados e limitações; não cria nem altera decisões do projeto.
@@ -82,4 +112,4 @@ Esta seção registra resultados observados e limitações; não cria nem altera
 - `Validate-Project.ps1` compõe as validações existentes nos modos `Full` e `Quick`, relata checks ignorados sem tratá-los como executados e compara fingerprints de arquivos visíveis ao repositório antes e depois da execução. Essa comparação não cobre caches e artefatos ignorados, mudanças apenas no índice, diretórios nem arquivos de reparse point que não puderam ser lidos.
 - `bootstrap.ps1` usa `Quick` por padrão, delega ao validador consolidado e fornece orientações manuais para capacidades ausentes e integrações externas. Não instala ferramentas, altera configurações persistentes nem verifica conectividade MCP.
 - O adaptador de `Stop` e sua configuração preservada estão implementados com prazo interno menor que o timeout nativo e continuação limitada por `stop_hook_active`. Em clone local isolado, clean-tree skip, Quick em árvore suja, bloqueio único na falha e prevenção de loop passaram com saída 0 do adaptador; a falha real do validador foi `whitespace-unstaged` com código 1. A invocação configurada em `commandWindows` também passou com saída 0. Um probe produziu falha `whitespace-untracked` em `Quick` (saída 1), mas `codex exec --json --ephemeral` concluiu sem bloqueio. A CLI interativa mostrou exatamente um hook de projeto instalado, nenhum ativo e um pendente de revisão de confiança. O VS Code não forneceu evidência de disparo. A configuração foi desativada por renomeação para `.codex/hooks.json.disabled`; integração nativa adiada. Validação explícita continua operacional.
-- Importação bem-sucedida não comprova comportamento de gameplay ou runtime; esses testes ainda não existem.
+- Gameplay 01 adicionou testes headless de regras provisórias, seleção de alvo, movimento, ataque, mitigação, interceptação por colisão e ciclo de morte/reinício. A validação Full executa esses testes após a importação. Importação e testes headless não comprovam apresentação visual, sensação de jogo nem balanceamento.

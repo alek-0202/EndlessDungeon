@@ -10,11 +10,15 @@ Antes dos primeiros assets, definir somente a direção de arte essencial para m
 
 ## 1. Protótipo 2D de combate e progressão
 
-**Meta:** um personagem, um inimigo, combate automático, HUD básico e progressão temporária simples.
+**Meta Gameplay 01:** arena 2D top-down estacionária, um herói automático, inimigos vindos de lados diferentes, preferência radial configurável, ataques corpo a corpo e projéteis físicos, atributos básicos de combate, HUD e término/reinício da run por morte. Usar placeholders visuais e valores provisórios; não incluir progressão ainda.
 
 O desenvolvimento inicial permanece offline-first. Este marco não exige todos os recursos multiplayer da visão final. A inclusão de qualquer capacidade multiplayer no protótipo ainda precisa de definição de escopo.
 
-**Verificação:** iniciar uma sessão, observar personagem e inimigo no HUD, acompanhar o combate automático e confirmar uma mudança temporária de progressão. As regras necessárias de combate, derrota, morte e recompensa devem ser aprovadas antes de implementá-las.
+**Verificação Gameplay 01:** iniciar a cena principal, observar spawn de vários lados e ações automáticas, alterar o raio de 0% a 100%, alternar ataques, observar colisão de projéteis e dano, confirmar encerramento por morte e reinício. Rodar os testes focados e a validação Full. Progressão temporária e regras de recompensa entram em incremento posterior após aprovação.
+
+**Incremento de kiting:** após playtest manual inicial aprovado, verificar nos dois modos aproximação até o alcance máximo, ataque imediato quando disponível, recuo durante cooldown, preferência radial flexível e respeito à borda da formação, sem oscilação ou reinício do cooldown por movimento.
+
+**Gameplay 02 — arena e HUD:** ampliar a área lógica para 960×540, usar 1920×1080 como referência desktop, manter filtragem nearest e números de combate, separar câmera com zoom configurável e HUD ancorado ao viewport. Acrescentar navegação inferior persistente e bases de seis painéis recolhíveis, com estado de combate compacto e controles atuais nos painéis adequados. Verificar troca e fechamento sem pausa, redimensionamento sem sobreposição e regressões de combate; conteúdo de skills, inventário, loot e grupo de quatro heróis continua futuro.
 
 ## 2. Validar preparação de build e estrutura da run
 

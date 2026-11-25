@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="HeroBuildConfig" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/hero_build_config.gd" id="1"]
+[ext_resource type="Resource" path="res://data/combat/prototype_hero_stats.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+stats = ExtResource("2")
+preferred_radius_percent = 60.0
+attack_mode = 1
+melee_range = 22.0
+projectile_speed = 220.0

@@ -6,6 +6,7 @@
 - Linguagem: GDScript.
 - O protótipo inicial deve permanecer pequeno e offline-first. A visão de longo prazo inclui partidas de até quatro jogadores; modalidade de rede, backend e momento de introdução do multiplayer continuam sem decisão.
 - Manter o protótipo pequeno; adicionar estrutura quando uma necessidade concreta surgir.
+- A primeira cena jogável usa arena 2D top-down com centro de formação fixo. Os combatentes recebem listas de alvos do tipo oposto; a arena instancia apenas um herói, sem implementar multiplayer.
 
 ## Separação de estado
 
@@ -24,6 +25,17 @@ As regras de transição, morte, salvamento e persistência ainda não estão de
 - **Estado em execução:** manter instâncias mutáveis da run separadas das definições reutilizáveis de `Resource`, evitando que uma run altere dados compartilhados de conteúdo.
 
 Esses são limites de responsabilidade, não uma exigência de criar serviços, autoloads ou frameworks antes de haver uso concreto.
+
+## Recorte técnico do combate inicial
+
+- CombatStats e HeroBuildConfig são definições em Resource; vida atual, cooldowns, alvo e estado da run pertencem às instâncias mutáveis.
+- CombatRules concentra a mitigação e o cálculo da posição radial provisórios. HeroCombatant controla movimento, alvo e ataque automáticos; EnemyCombatant persegue e ataca; PhysicalProjectile usa colisão Area2D com alvos inimigos válidos.
+- CombatArena mantém o centro e o raio da formação, cria inimigos de lados diferentes, conecta ataques e encerra/reinicia a run. CombatHud apresenta o estado e envia alterações de configuração, sem calcular combate.
+- A arena lógica usa 960×540 unidades; o centro da formação fica ligeiramente acima do centro visual para permanecer visível com um painel aberto no zoom padrão, sem mudar raio, alcance, velocidade ou distâncias relativas de spawn. Camera2D tem zoom exportado separado das unidades do mundo. CombatHud usa CanvasLayer e âncoras de viewport para não herdar o zoom; CombatPanel fornece uma base comum para painéis com conteúdo rolável.
+- A navegação inferior permanece visível; o painel ativo ocupa até cerca de 30% da altura disponível e recolhe quando selecionado novamente. Colunas de navegação e altura útil se adaptam ao viewport, mantendo status e reinício visíveis. Conteúdo futuro de Skills, Inventory e Loot permanece fora do escopo.
+- HeroCombatant reduz o cooldown independentemente do movimento, verifica ataques prontos antes de se reposicionar, aproxima-se somente até o alcance ativo e limita cada passo à formação. Durante cooldown, corrige distância e usa a preferência radial apenas para deslocamento seguro próximo ao alcance; a lógica vale para corpo a corpo e projéteis.
+- A configuração radial e o modo de ataque ficam na cópia ativa da build para não alterar o Resource reutilizável. Os controladores aceitam listas de alvos para futura expansão, mas múltiplos heróis jogáveis, classes e comportamentos padrão completos, ameaça individual, persistência e multiplayer ficam para incrementos aprovados posteriores.
+- tests/combat/test_combat.gd cobre regras, movimento, alvo, ataque, colisão física, ciclo da run, câmera, painéis e layout após redimensionamento; a validação Full executa esses testes após importar o projeto. Importação e testes headless não substituem avaliação visual e de balanceamento.
 
 ## Responsabilidades previstas
 
