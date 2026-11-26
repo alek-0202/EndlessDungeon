@@ -98,6 +98,43 @@ Este registro oferece rastreabilidade sem repetir as regras detalhadas de `GAME_
 - Consequências: tamanho da arena e apresentação mudam, enquanto raio da formação, atributos e distâncias relativas de spawn permanecem provisoriamente iguais. Os painéis sem mecânicas próprias exibem apenas estrutura inicial; design visual detalhado continua aberto.
 - Referências: docs/GAME_DESIGN.md, docs/ARCHITECTURE.md, docs/ROADMAP.md, tarefa Gameplay 02 — Arena & HUD Foundation.
 
+### DEC-009 — Simulação local de party e ameaça individual
+
+- Data: 2026-11-25 (decisão explicitada em Gameplay 03)
+- Status: aceita
+- Contexto: após a fundação de combate e HUD, é preciso observar proteção, interceptação e perigo individual em uma party local.
+- Decisão: simular quatro heróis independentes com arquétipos provisórios Tank 90%, Assassin 75%, Archer 30% e Mage 15% de preferência radial; cada inimigo mantém ameaça por herói baseada em dano com modificador configurável para o Tank. Tank prioriza interceptação e proteção do grupo; outros comportamentos apropriados mantêm kiting. Inimigos corpo a corpo e à distância coexistem, seus projéteis podem ser interceptados por outro herói, e a run termina quando todos morrerem.
+- Justificativa: tornar observável a escolha individual de alvo sem garantir proteção por tanque ou antecipar multiplayer.
+- Consequências: cada herói tem stats, vida, cooldown, alvo, movimento e configuração próprios; HUD seleciona herói e mostra vida da party. Arena, formação, densidade, números de build e multiplicadores são provisórios. Classes completas, skills, ressurreição, equipamentos, progressão, rede e fórmulas finais de ameaça continuam fora do escopo.
+- Referências: docs/GAME_DESIGN.md, docs/ARCHITECTURE.md, docs/ROADMAP.md, tarefa Gameplay 03.
+
+### DEC-010 — Refinamento de aquisição e posicionamento da party
+
+- Data: 2026-11-25 (decisão explicitada após playtest manual de Gameplay 03)
+- Status: aceita
+- Contexto: projéteis podiam chegar após a fonte ser liberada, e heróis não-tanque perseguiam inimigos distantes até a borda da formação.
+- Decisão: manter a interceptação do Tank aprovada. Para os demais, separar alcance de ataque, detecção inicial de 110% do alcance efetivo e região radial configurada, com pequena tolerância. Liberar alvos fora do engajamento, retornar ao ponto preferido sem alvo e fazer kiting dentro da região nos dois modos de ataque. Projéteis continuam causando dano após a fonte morrer ou ser liberada, atribuindo a fonte apenas quando ainda válida.
+- Consequências: o protótipo usa margem de liberação igual à tolerância radial e interpreta a região como disco limitado pelo raio preferido mais tolerância, sempre dentro da formação. Esses detalhes permanecem configuráveis e provisórios; balanceamento e regras finais de aquisição continuam abertos.
+- Referências: docs/GAME_DESIGN.md, docs/ARCHITECTURE.md, docs/ROADMAP.md, tarefa Gameplay 03 — Combat Behavior Refinement.
+
+### DEC-011 — Fundação de classes e Sandbox de combate
+
+- Data: 2026-11-25 (decisão explicitada em Gameplay 04)
+- Status: aceita
+- Contexto: o responsável aprovou o comportamento atual da party e pediu classes com vantagens naturais e uma área de experimentação ao vivo.
+- Decisão: criar definições reutilizáveis de Tank, Assassin, Archer e Mage, estado runtime independente e as passivas descritas em GAME_DESIGN. Permitir composição local dinâmica e ajustes temporários pelo Sandbox de desenvolvimento, sem restringir builds nem alterar dados permanentes.
+- Consequências: os parâmetros não especificados são configuráveis e provisórios. Mage zera ambos os contadores na ativação, lança três fireballs de 100% do dano de skill, repetindo alvo quando necessário; casts ficam preparados por evento, sem sistema completo de skills. Furtividade reduz prioridade de alvo e não impede colisões. O Sandbox não integra progressão ou rede.
+- Referências: docs/GAME_DESIGN.md, docs/ARCHITECTURE.md, docs/ROADMAP.md, tarefa Gameplay 04 — Class Foundation & Combat Sandbox.
+
+### DEC-012 — Próximo marco visual após Gameplay 04B
+
+- Data: 2026-11-26 (prioridade aprovada no checkpoint de Gameplay 03/04/04B)
+- Status: aceita
+- Contexto: o responsável aprovou manualmente Gameplay 03, Gameplay 04 e Gameplay 04B e definiu a próxima prioridade.
+- Decisão: priorizar Art Direction e Visual Foundation antes de novos sistemas de gameplay. A direção visual precisa de aprovação própria antes da produção de assets; geração paga continua sujeita a aprovação ou orçamento.
+- Consequências: a roadmap registra o marco visual como próximo passo. Este checkpoint não gera assets nem inicia gameplay novo.
+- Referências: docs/ROADMAP.md, tarefa de finalização da branch feature/party-aggro.
+
 ## Evidências de implementação relacionadas
 
 Esta seção registra resultados observados e limitações; não cria nem altera decisões do projeto.
@@ -113,3 +150,6 @@ Esta seção registra resultados observados e limitações; não cria nem altera
 - `bootstrap.ps1` usa `Quick` por padrão, delega ao validador consolidado e fornece orientações manuais para capacidades ausentes e integrações externas. Não instala ferramentas, altera configurações persistentes nem verifica conectividade MCP.
 - O adaptador de `Stop` e sua configuração preservada estão implementados com prazo interno menor que o timeout nativo e continuação limitada por `stop_hook_active`. Em clone local isolado, clean-tree skip, Quick em árvore suja, bloqueio único na falha e prevenção de loop passaram com saída 0 do adaptador; a falha real do validador foi `whitespace-unstaged` com código 1. A invocação configurada em `commandWindows` também passou com saída 0. Um probe produziu falha `whitespace-untracked` em `Quick` (saída 1), mas `codex exec --json --ephemeral` concluiu sem bloqueio. A CLI interativa mostrou exatamente um hook de projeto instalado, nenhum ativo e um pendente de revisão de confiança. O VS Code não forneceu evidência de disparo. A configuração foi desativada por renomeação para `.codex/hooks.json.disabled`; integração nativa adiada. Validação explícita continua operacional.
 - Gameplay 01 adicionou testes headless de regras provisórias, seleção de alvo, movimento, ataque, mitigação, interceptação por colisão e ciclo de morte/reinício. A validação Full executa esses testes após a importação. Importação e testes headless não comprovam apresentação visual, sensação de jogo nem balanceamento.
+- Gameplay 04 acrescentou testes determinísticos de contadores e timers de passivas, bônus do Archer, caça/furtividade e colisão do Assassin, fireballs da Mage, distribuição de cura do Tank, composição dinâmica, isolamento de overrides e controles do Sandbox. A validação Full passou com 12 checks, nenhum falhou ou foi ignorado, e um warning de Python opcional ausente; a execução headless da cena principal por 600 frames terminou com saída 0. Avaliação visual e balanceamento das classes ainda dependem de playtest do responsável.
+- Gameplay 04B mantém as regras aprovadas e refina estabilidade e uso: liberação de alvo à distância fora do alcance radial, cooldown contínuo sem alvo, seleção por identidade e edição de atributos ao vivo com preservação da fração do cooldown. Os testes determinísticos de combate e Sandbox passaram (saída 0). Capturas com renderização real em 1920×1080 e 960×540 foram inspecionadas; cartões e controles roláveis ficaram legíveis, sem sobreposição observada nesses dois tamanhos. Uma captura headless com renderer dummy não foi possível, portanto a evidência visual vem apenas da execução gráfica. Perfil headless de 180 frames por cenário, com inimigos de vida elevada para manter a carga: 1 herói/20 inimigos 184,6 µs médios por passo, 4/60 1905,2 µs, 8/100 3980,4 µs com HUD limitado a 5 Hz; em 8/100 com atualização a cada frame, 4833,0 µs. São medidas locais de um único processo, não metas de desempenho nem garantia para outras máquinas.
+- A validação Full final de Gameplay 04B passou com saída 0: 12 checks aprovados, nenhum falhou ou foi ignorado, um aviso de Python opcional ausente e nenhum efeito colateral visível no repositório. A importação Godot e os testes de gameplay passaram separadamente. O responsável aprovou o playtest de Gameplay 03, Gameplay 04 e Gameplay 04B em 2026-11-26; o balanceamento definitivo permanece em aberto.

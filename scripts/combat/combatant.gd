@@ -26,7 +26,7 @@ func configure(new_stats: CombatStats) -> void:
 	health_changed.emit(self)
 
 
-func receive_hit(raw_damage: float) -> void:
+func receive_hit(raw_damage: float, _source: Combatant = null) -> void:
 	if not is_alive or stats == null:
 		return
 	current_health = maxf(0.0, current_health - CombatRules.damage_after_armor(raw_damage, stats.armor))
@@ -41,3 +41,11 @@ func health_fraction() -> float:
 	if stats == null or stats.max_health <= 0.0:
 		return 0.0
 	return current_health / stats.max_health
+
+
+func heal(amount: float) -> void:
+	if not is_alive or stats == null or amount <= 0.0:
+		return
+	current_health = minf(stats.max_health, current_health + amount)
+	health_changed.emit(self)
+	queue_redraw()

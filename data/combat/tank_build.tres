@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="HeroBuildConfig" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/hero_build_config.gd" id="1"]
+[ext_resource type="Resource" path="res://data/combat/tank_stats.tres" id="2"]
+[ext_resource type="Resource" path="res://data/combat/tank_class.tres" id="3"]
+
+[resource]
+script = ExtResource("1")
+stats = ExtResource("2")
+class_definition = ExtResource("3")
+archetype = 0
+preferred_radius_percent = 90.0
+threat_multiplier = 2.5
+attack_mode = 0
+melee_range = 22.0
+projectile_speed = 200.0
